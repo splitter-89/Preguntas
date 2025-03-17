@@ -70,11 +70,20 @@
             margin-top: 15px;
             font-weight: bold;
         }
+
+        #num-questions {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <div id="trivial-container">
         <h1>Trivial de Preguntas</h1>
+        <div>
+            <label for="num-questions"></label>
+            <input type="number" id="num-questions" min="1" max="10" value="5">
+            <button id="start-button">Comenzar</button>
+        </div>
         <div id="question" class="question"></div>
         <div id="options" class="options"></div>
         <button id="next-button">Siguiente</button>
@@ -84,16 +93,23 @@
 
     <script>
         let questions = [
-            { question: "¿Precio billete sencillo?", options: ["2.55", "2.65", "2.60", "2.70"], answer: "2.65" },
-            { question: "¿Precio billete bus turístic 24 horas?", options: ["29.70", "30", "30.50", "29.45"], answer: "29.70" },
+            { question: "¿Precio billete sencillo?", options: ["2.55€", "2.65€", "2.60€", "2.70€"], answer: "2.65€" },
+            { question: "¿Precio billete bus turístic 24 horas?", options: ["33€", "30€", "30.50€", "29.45€"], answer: "33€" },
             { question: "¿Dónde está la oficina de objetos perdidos de TMB?", options: ["Sagrera", "Sagrada Familia", "Diagonal", "Universidad"], answer: "Sagrada Familia" },
             { question: "¿Presidente/ta de TMB?", options: ["Laia Bonet", "Rosa Alarcón", "Xavier Flores", "Antonio Balmón"], answer: "Laia Bonet" },
             { question: "¿Vicepresidente/ta de TMB?", options: ["Laia Bonet", "Rosa Alarcón", "Xavier Flores", "Antonio Balmón"], answer: "Antonio Balmón" },
-            { question: "¿Consejero/a delegado de TMB?", options: ["Laia Bonet", "Rosa Alarcón", "Xavier Flores", "Antonio Balmón"], answer: "Xavier Flores" },
-            { question: "¿Precio Tarjeta T-Usual?", options: ["23", "24", "21", "22"], answer: "22" },
+            { question: "¿Precio Tarjeta T-Usual 1 zona?", options: ["23€", "24€", "21€", "22€"], answer: "22€" },
             { question: "¿La línea 136 a que CON pertenece?", options: ["Zona Franca", "Horta", "Triangle"], answer: "Triangle" },
-
-
+            { question: "¿Que línea ha tenido más validaciones en laborables en 2024?", options: ["206", "208", "204"], answer: "206" },
+            { question: "¿Que líneas pasan por Albert Llanas?", options: ["219 y 24", "219 y 39", "219 y 221"], answer: "219 y 24" },
+            { question: "¿Que líneas pasan por el Puente del trabajo", options: ["229 y 231", "208 y 231", "233 y 229"], answer: "229 y 231" },
+            { question: "¿Dime una línea que circule por diagonal", options: ["7", "39", "223"], answer: "7" },
+            { question: "¿Dime una línea que circule por Av. Sarrià", options: ["6", "33", "27"], answer: "6" },
+            { question: "¿Dime una línea que circule por Vía Barcino", options: ["231", "233", "131"], answer: "231" },
+            { question: "¿Dime una línea que circule por Marina-Ribes", options: ["6", "221", "54","Todas las respuestas"], answer: "Todas las respuestas" },
+            { question: "¿La línea 33 circula por Rambla Prim", options: ["Si", "No", "Esa calle no existe"], answer: "Si" },
+            { question: "¿La línea 136 circula por Vía Trajana", options: ["Si", "No", "Esa calle no existe"], answer: "Si" },
+            { question: "¿Dime una línea que circule por Cristobal de moura", options: ["233", "214", "Todas las anteriores"], answer: "Todas las anteriores" },
         ];
 
         // Mezclar preguntas aleatoriamente
@@ -109,10 +125,11 @@
         let currentQuestionIndex = 0;
         let correctAnswers = 0;
         let incorrectAnswers = 0;
+        let selectedQuestions = [];
 
         function loadQuestion() {
-            const currentQuestion = questions[currentQuestionIndex];
-            document.getElementById("question").innerText = currentQuestion.question;
+            const currentQuestion = selectedQuestions[currentQuestionIndex];
+            document.getElementById("question").innerText = `Pregunta: ${currentQuestion.question}`;
             const optionsContainer = document.getElementById("options");
             optionsContainer.innerHTML = '';
 
@@ -128,7 +145,7 @@
         }
 
         function checkAnswer(button, selectedOption) {
-            const currentQuestion = questions[currentQuestionIndex];
+            const currentQuestion = selectedQuestions[currentQuestionIndex];
             const buttons = document.querySelectorAll(".options button");
 
             // Deshabilitar todos los botones para que no se pueda hacer clic después de elegir
@@ -139,7 +156,6 @@
                 correctAnswers++;
             } else {
                 button.classList.add("incorrect");
-                correctAnswers++;
                 // Resaltar en verde la respuesta correcta
                 buttons.forEach(btn => {
                     if (btn.innerText === currentQuestion.answer) {
@@ -150,7 +166,7 @@
             }
 
             currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
+            if (currentQuestionIndex < selectedQuestions.length) {
                 document.getElementById("next-button").style.display = "block";
             } else {
                 showScore();
@@ -165,6 +181,17 @@
             document.getElementById("restart-button").style.display = "block";
         }
 
+        document.getElementById("start-button").onclick = function() {
+            const numQuestions = parseInt(document.getElementById("num-questions").value);
+            selectedQuestions = questions.slice(0, numQuestions);
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            incorrectAnswers = 0;
+            document.getElementById("start-button").style.display = "none";
+            document.getElementById("num-questions").style.display = "none";
+            loadQuestion();
+        };
+
         document.getElementById("next-button").onclick = loadQuestion;
         document.getElementById("restart-button").onclick = function() {
             shuffle(questions); // Volver a mezclar preguntas
@@ -172,10 +199,12 @@
             correctAnswers = 0;
             incorrectAnswers = 0;
             document.getElementById("restart-button").style.display = "none";
-            loadQuestion();
+            document.getElementById("start-button").style.display = "block";
+            document.getElementById("num-questions").style.display = "block";
+            document.getElementById("question").innerText = "";
+            document.getElementById("options").innerHTML = "";
+            document.getElementById("score").innerHTML = "";
         };
-
-        loadQuestion();
     </script>
 </body>
 </html>
